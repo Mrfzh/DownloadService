@@ -175,26 +175,6 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
         isCanceled = true;
     }
 
-    /**
-     * 获取文件总长度
-     * @param downloadUrl
-     * @return
-     * @throws IOException
-     */
-//    private long getContentLength(String downloadUrl) throws IOException {
-//        OkHttpClient client = new OkHttpClient();
-//        Request request = new Request.Builder()
-//                .url(downloadUrl)
-//                .build();
-//        Response response = client.newCall(request).execute();
-//        if (response != null && response.isSuccessful()) {
-//            long contentLength = request.body().contentLength();
-//            response.close();
-//            return contentLength;
-//        }
-//
-//        return 0;
-//    }
     private long getContentLength(String downloadUrl) throws IOException {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()

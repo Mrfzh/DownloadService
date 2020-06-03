@@ -1,15 +1,16 @@
 package com.feng.downloadservicedemo;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
+import android.support.annotation.RequiresApi;
 import android.widget.Toast;
 
 import java.io.File;
@@ -19,6 +20,9 @@ import java.io.File;
  * Created on 2018/9/25
  */
 public class DownloadService extends Service {
+
+    private static final String CHANNEL_ID = "channel_id";
+    private static final String CHANNEL_NAME = "channel_name";
 
     private DownloadTask mDownloadTask;
 
@@ -70,6 +74,7 @@ public class DownloadService extends Service {
                 mDownloadUrl = url;
                 mDownloadTask = new DownloadTask(mDownloadListener);
                 mDownloadTask.execute(mDownloadUrl);
+                createNotificationChannel();    // 创建通知渠道
                 startForeground(1, getNotification("Downloading...", 0));
                 Toast.makeText(DownloadService.this, "Downloading...", Toast.LENGTH_SHORT).show();
             }
@@ -103,7 +108,6 @@ public class DownloadService extends Service {
         }
     }
 
-    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return mDownloadBinder;
@@ -117,14 +121,30 @@ public class DownloadService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, MainActivity.class), 0);
         Notification.Builder builder = new Notification.Builder(this);
-        builder.setSmallIcon(R.mipmap.ic_launcher);
-        builder.setContentIntent(pendingIntent);
-        builder.setContentTitle(title);
+        builder.setSmallIcon(R.mipmap.ic_launcher)
+            .setContentIntent(pendingIntent)
+            .setContentTitle(title);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder.setChannelId(CHANNEL_ID);
+        }
         if (progress > 0) {
             builder.setContentText(progress + "%");
             builder.setProgress(100, progress, false);  //显示下载进度
         }
         return builder.build();
+    }
 
+    /**
+     * Android8.0以上创建通知需要创建通知渠道
+     */
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_HIGH);
+            NotificationManager manager = getNotificationManager();
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
+        }
     }
 }
